@@ -1,0 +1,5899 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f766e">
+    <title>退貨條件計算系統</title>
+    <style>
+:root {
+  color-scheme: light;
+  --bg: #eef7f5;
+  --surface: #ffffff;
+  --surface-soft: #f4fbf9;
+  --ink: #10201d;
+  --muted: #64726f;
+  --line: #d6e4e1;
+  --accent: #0f766e;
+  --accent-strong: #0b5f59;
+  --ok: #047857;
+  --warn: #b45309;
+  --bad: #b91c1c;
+  --shadow: 0 18px 45px rgba(15, 118, 110, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #dff2ef 0%, var(--bg) 42%, #f8fcfb 100%);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input[type="file"] {
+  padding: 10px;
+}
+
+.app-shell {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 20px 16px 36px;
+}
+
+.lookup-panel,
+.result-panel,
+.vendor-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.lookup-panel {
+  padding: 22px;
+}
+
+.title-row,
+.section-heading,
+.metric-grid,
+.button-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-row,
+.section-heading {
+  justify-content: space-between;
+}
+
+.title-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+h2 {
+  margin-bottom: 6px;
+  font-size: 1.15rem;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--accent-strong);
+  padding: 7px 11px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.lookup-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.guide-panel {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  padding: 14px;
+}
+
+.guide-panel[hidden] {
+  display: none;
+}
+
+.guide-panel h2,
+.guide-panel h3 {
+  margin-bottom: 10px;
+}
+
+.guide-block + .guide-block {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.guide-panel h3 {
+  font-size: 1rem;
+}
+
+.guide-panel ol {
+  margin: 0;
+  padding-left: 1.35rem;
+}
+
+.guide-panel li {
+  margin: 7px 0;
+}
+
+.guide-panel p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.guide-panel code {
+  color: var(--accent-strong);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 12px 13px;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+}
+
+.button-row {
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 18px;
+}
+
+.primary-button:hover {
+  background: var(--accent-strong);
+}
+
+.ghost-button,
+.text-button {
+  background: var(--surface-soft);
+  color: var(--accent-strong);
+  padding: 12px 16px;
+}
+
+.text-button {
+  padding: 9px 12px;
+}
+
+.result-panel,
+.vendor-panel {
+  margin-top: 14px;
+  padding: 18px;
+}
+
+.empty-state {
+  color: var(--muted);
+}
+
+.empty-state h2 {
+  color: var(--ink);
+}
+
+.result-card {
+  display: grid;
+  gap: 14px;
+}
+
+.result-banner {
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.result-banner.is-ok {
+  background: #e8f8f1;
+  color: var(--ok);
+}
+
+.result-banner.is-bad {
+  background: #fff1f1;
+  color: var(--bad);
+}
+
+.result-banner.is-warn {
+  background: #fff7ed;
+  color: var(--warn);
+}
+
+.result-banner h2 {
+  margin-bottom: 3px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--surface-soft);
+}
+
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.35rem;
+}
+
+.detail-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.detail-list div {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 10px;
+}
+
+.detail-list dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.detail-list dd {
+  margin: 0;
+}
+
+.vendor-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.vendor-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--surface-soft);
+}
+
+.vendor-item h3 {
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.vendor-item p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.data-editor {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.data-editor[hidden] {
+  display: none;
+}
+
+textarea {
+  min-height: 220px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.helper-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.file-import {
+  margin-top: 4px;
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    padding: 12px 10px 28px;
+  }
+
+  .lookup-panel,
+  .result-panel,
+  .vendor-panel {
+    padding: 16px;
+  }
+
+  .title-row,
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .title-row {
+    flex-direction: column;
+  }
+
+  .title-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-row > button {
+    flex: 1 1 130px;
+  }
+
+  .detail-list div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="lookup-panel" aria-labelledby="app-title">
+        <div class="title-row">
+          <div>
+            <p class="eyebrow">Mobile Return Rule Calculator</p>
+            <h1 id="app-title">退貨條件計算系統</h1>
+            <p class="helper-text">作品展示版：全部廠商與退貨條件均為虛構資料。</p>
+          </div>
+          <div class="title-actions">
+            <span class="status-pill" id="dataStatus">資料載入中</span>
+            <button class="text-button" type="button" id="toggleGuideButton">更新 Excel 教學</button>
+          </div>
+        </div>
+
+        <section class="guide-panel" id="updateGuide" hidden>
+          <h2>更新 Excel 後，讓系統資料同步</h2>
+
+          <div class="guide-block">
+            <h3>電腦版使用者</h3>
+            <ol>
+              <li>把新版 Excel 放在這個資料夾：<code>本專案資料夾</code></li>
+              <li>在 Excel 選「另存新檔」，檔名存成 <code>source.xlsx</code>。</li>
+              <li>不用關掉其他 Excel 檔，但請確認 <code>source.xlsx</code> 已儲存完成。</li>
+              <li>雙擊資料夾裡的 <code>更新廠商資料.bat</code>。</li>
+              <li>看到更新完成後，重新開啟或重新整理這個網頁。</li>
+            </ol>
+          </div>
+
+          <div class="guide-block">
+            <h3>手機版使用者</h3>
+            <ol>
+              <li>先在這台電腦完成上面的 Excel 更新步驟。</li>
+              <li>重新產生手機版檔案，或請負責維護的人產生新版。</li>
+              <li>把新版 <code>return-rule-finder-mobile.zip</code> 傳到手機。</li>
+              <li>手機解壓縮後，打開裡面的 <code>return-rule-finder.html</code>。</li>
+            </ol>
+            <p>手機不能開 <code>127.0.0.1</code> 的網址，因為那只代表目前這台裝置。手機請用離線 HTML 檔，或請資訊人員放到公司內網網址。</p>
+            <p>手機版是離線檔案，單純修改 Excel 不會自動更新到手機；每次 Excel 改版後，都要重新傳新版手機檔。</p>
+          </div>
+        </section>
+
+        <form id="lookupForm" class="lookup-form">
+          <label for="vendorCode">
+            廠商代碼或名稱
+            <input id="vendorCode" name="vendorCode" type="text" autocomplete="off" placeholder="例如 001 或 示範廠商001" required>
+          </label>
+
+          <label for="expiryDate">
+            效期年月
+            <input id="expiryDate" name="expiryDate" type="text" inputmode="numeric" placeholder="2027/05、2027-05 或 202705" required>
+          </label>
+
+          <label id="productTypeField" for="productType" hidden>
+            品項類型
+            <select id="productType" name="productType"></select>
+            <span class="field-hint" id="productTypeStatus"></span>
+          </label>
+
+          <label for="currentDate">
+            計算基準年月
+            <input id="currentDate" name="currentDate" type="month" required>
+            <span class="field-hint" id="currentDateStatus"></span>
+          </label>
+
+          <div class="button-row">
+            <button class="primary-button" type="submit">查詢</button>
+            <button class="ghost-button" type="button" id="resetButton">清除</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="result-panel" id="resultPanel" aria-live="polite">
+        <div class="empty-state">
+          <h2>輸入廠商與效期後，結果會顯示在這裡。</h2>
+          <p>系統會用「效期年月 - 基準年月」計算剩餘月數，再比對廠商最低退貨門檻。</p>
+        </div>
+      </section>
+
+      <section class="vendor-panel" aria-labelledby="vendor-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Vendor JSON</p>
+            <h2 id="vendor-title">廠商條件資料</h2>
+          </div>
+          <button class="text-button" type="button" id="toggleDataButton">編輯</button>
+        </div>
+
+        <div class="vendor-list" id="vendorList"></div>
+
+        <div class="data-editor" id="dataEditor" hidden>
+          <label for="vendorJson">JSON 資料</label>
+          <textarea id="vendorJson" spellcheck="false"></textarea>
+          <div class="button-row">
+            <button class="primary-button" type="button" id="saveDataButton">套用資料</button>
+            <button class="ghost-button" type="button" id="sampleDataButton">載入示範資料</button>
+            <button class="ghost-button" type="button" id="downloadCsvButton">下載 CSV</button>
+          </div>
+          <label class="file-import" for="vendorFile">
+            匯入新版 vendors.json
+            <input id="vendorFile" name="vendorFile" type="file" accept=".json,application/json">
+          </label>
+          <p class="helper-text" id="editorMessage"></p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+window.VENDOR_DATA = [
+  {
+    "vendor_code": "001",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商001",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口001（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "002",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商002",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口002（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "003",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商003",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口003（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "004",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商004",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口004（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "005",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商005",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口005（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "006",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商006",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口006（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "007",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商007",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口007（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "008",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商008",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口008（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "009",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商009",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口009（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "010",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商010",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口010（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "011",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商011",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口011（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "012",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商012",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口012（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "013",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商013",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口013（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "014",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商014",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口014（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "015",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商015",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口015（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "016",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商016",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口016（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "017",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商017",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口017（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "018",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商018",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口018（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "019",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商019",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口019（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "020",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商020",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口020（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "021",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商021",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口021（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "022",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商022",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口022（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "023",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商023",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口023（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "024",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商024",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口024（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "025",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商025",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口025（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "026",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商026",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口026（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "027",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商027",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口027（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "028",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商028",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口028（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "029",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商029",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口029（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "030",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商030",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口030（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "031",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商031",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口031（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "032",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商032",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口032（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "033",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商033",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口033（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "034",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商034",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口034（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "035",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商035",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口035（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "036",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商036",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口036（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "037",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商037",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口037（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "038",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商038",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口038（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "039",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商039",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口039（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "040",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商040",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口040（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "041",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商041",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口041（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "042",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商042",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口042（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "043",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商043",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口043（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "044",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商044",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口044（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "045",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商045",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口045（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "046",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商046",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口046（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "047",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商047",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口047（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "048",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商048",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口048（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "049",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商049",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口049（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "050",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商050",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口050（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "051",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商051",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口051（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "052",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商052",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口052（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "053",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商053",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口053（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "054",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商054",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口054（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "055",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商055",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口055（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "056",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商056",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口056（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "057",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商057",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口057（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "058",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商058",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口058（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "059",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商059",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口059（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "060",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商060",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口060（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "061",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商061",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口061（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "062",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商062",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口062（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "063",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商063",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口063（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "064",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商064",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口064（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "065",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商065",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口065（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "066",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商066",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口066（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "067",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商067",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口067（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "068",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商068",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口068（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "069",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商069",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口069（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "070",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商070",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口070（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "071",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商071",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口071（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "072",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商072",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口072（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "073",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商073",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口073（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "074",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商074",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口074（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "075",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商075",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口075（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "076",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商076",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口076（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "077",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商077",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口077（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "078",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商078",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口078（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "079",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商079",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口079（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "080",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商080",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口080（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "081",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商081",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口081（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "082",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商082",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口082（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "083",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商083",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口083（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "084",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商084",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口084（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "085",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商085",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口085（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "086",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商086",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口086（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "087",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商087",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口087（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "088",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商088",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口088（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "089",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商089",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口089（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "090",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商090",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口090（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "091",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商091",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口091（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1-300"
+  },
+  {
+    "vendor_code": "301",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商092",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口092（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "302",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商093",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口093（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "303",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商094",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口094（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "304",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商095",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口095（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "305",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商096",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口096（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "306",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商097",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口097（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "307",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商098",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口098（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "308",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商099",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口099（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "309",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商100",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口100（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "310",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商101",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口101（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "311",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商102",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口102（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "312",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商103",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口103（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "313",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商104",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口104（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "314",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商105",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口105（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "315",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商106",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口106（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "316",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商107",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口107（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "317",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商108",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口108（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "318",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商109",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口109（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "319",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商110",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口110（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "320",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商111",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口111（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "321",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商112",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口112（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "322",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商113",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口113（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "323",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商114",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口114（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "324",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商115",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口115（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "325",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商116",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口116（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "326",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商117",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口117（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "327",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商118",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口118（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "328",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商119",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口119（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "329",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商120",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口120（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "330",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商121",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口121（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "331",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商122",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口122（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "332",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商123",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口123（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "333",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商124",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口124（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "334",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商125",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口125（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "335",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商126",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口126（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "336",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商127",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口127（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "337",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商128",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口128（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "338",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商129",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口129（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "339",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商130",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口130（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "340",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商131",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口131（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "341",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商132",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口132（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "342",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商133",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口133（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "343",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商134",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口134（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "344",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商135",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口135（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "345",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商136",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口136（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "346",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商137",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口137（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "347",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商138",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口138（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "348",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商139",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口139（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "349",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商140",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口140（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "350",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商141",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口141（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "351",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商142",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口142（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "352",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商143",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口143（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "353",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商144",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口144（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "354",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商145",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口145（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "355",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商146",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口146（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "356",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商147",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口147（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "357",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商148",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口148（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "358",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商149",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口149（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "359",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商150",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口150（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "360",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商151",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口151（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "361",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商152",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口152（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "362",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商153",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口153（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "363",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商154",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口154（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "364",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商155",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口155（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "365",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商156",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口156（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "366",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商157",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口157（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "367",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商158",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口158（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "368",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商159",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口159（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "369",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商160",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口160（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "370",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商161",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口161（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "371",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商162",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口162（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "372",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商163",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口163（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "373",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商164",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口164（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "374",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商165",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口165（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "375",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商166",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口166（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "376",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商167",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口167（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "377",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商168",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口168（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "378",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商169",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口169（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "379",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商170",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口170（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "380",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商171",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口171（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "381",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商172",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口172（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "382",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商173",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口173（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "383",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商174",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口174（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "301-1000"
+  },
+  {
+    "vendor_code": "1001",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商175",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口175（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1002",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商176",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口176（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1003",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商177",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口177（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1004",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商178",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口178（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1005",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商179",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口179（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1006",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商180",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口180（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1007",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商181",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口181（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1008",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商182",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口182（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1009",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商183",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口183（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1010",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商184",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口184（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1011",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商185",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口185（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1012",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商186",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口186（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1013",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商187",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口187（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1014",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商188",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口188（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1015",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商189",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口189（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1016",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商190",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口190（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1017",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商191",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口191（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1018",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商192",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口192（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1019",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商193",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口193（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1020",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商194",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口194（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1021",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商195",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口195（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1022",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商196",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口196（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1023",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商197",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口197（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1024",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商198",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口198（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1025",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商199",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口199（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1026",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商200",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口200（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1027",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商201",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口201（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1028",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商202",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口202（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1029",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商203",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口203（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1030",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商204",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口204（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1031",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商205",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口205（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1032",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商206",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口206（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1033",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商207",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口207（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1034",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商208",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口208（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1035",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商209",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口209（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1036",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商210",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口210（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1037",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商211",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口211（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1038",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商212",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口212（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1039",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商213",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口213（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1040",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商214",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口214（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1041",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商215",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口215（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1042",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商216",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口216（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1043",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商217",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口217（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1044",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商218",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口218（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1045",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商219",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口219（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1046",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商220",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口220（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "1047",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商221",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口221（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "1001-2000"
+  },
+  {
+    "vendor_code": "2001",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商222",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口222（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2002",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商223",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口223（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2003",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商224",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口224（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2004",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商225",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口225（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2005",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商226",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口226（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2006",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商227",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口227（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2007",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商228",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口228（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2008",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商229",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口229（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2009",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商230",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口230（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2010",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商231",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口231（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2011",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商232",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口232（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2012",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商233",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口233（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2013",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商234",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口234（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2014",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商235",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口235（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2015",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商236",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口236（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2016",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商237",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口237（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2017",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商238",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口238（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2018",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商239",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口239（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2019",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商240",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口240（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2020",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商241",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口241（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2021",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商242",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口242（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2022",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商243",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口243（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2023",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商244",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口244（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2024",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商245",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口245（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2025",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商246",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口246（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2026",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商247",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口247（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2027",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商248",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口248（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2028",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商249",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口249（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2029",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商250",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口250（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2030",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商251",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口251（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2031",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商252",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口252（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2032",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商253",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口253（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2033",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商254",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口254（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2034",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商255",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口255（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2035",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商256",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口256（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2036",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商257",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口257（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2037",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商258",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口258（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2038",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商259",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口259（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2039",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商260",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口260（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2040",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商261",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口261（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2041",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商262",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口262（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2042",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商263",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口263（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2043",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商264",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口264（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2044",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商265",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口265（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2045",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商266",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口266（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2046",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商267",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口267（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2047",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商268",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口268（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2048",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商269",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口269（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2049",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商270",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口270（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2050",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商271",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口271（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2051",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商272",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口272（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2052",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商273",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口273（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2053",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商274",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口274（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2054",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商275",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口275（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2055",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商276",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口276（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2056",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商277",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口277（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2057",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商278",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口278（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2058",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商279",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口279（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2059",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商280",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口280（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2060",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商281",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口281（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2061",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商282",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口282（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2062",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商283",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口283（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2063",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商284",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口284（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2064",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商285",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口285（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2065",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商286",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口286（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2066",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商287",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口287（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2067",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商288",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口288（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2068",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商289",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口289（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2069",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商290",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口290（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2070",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商291",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口291（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2071",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商292",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口292（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2072",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商293",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口293（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2073",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商294",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口294（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2074",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商295",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口295（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2075",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商296",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口296（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2076",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商297",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口297（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2077",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商298",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口298（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2078",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商299",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口299（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2079",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商300",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口300（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2080",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商301",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口301（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2081",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商302",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口302（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2082",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商303",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口303（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2083",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商304",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口304（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2084",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商305",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口305（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2085",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商306",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口306（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2086",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商307",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口307（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2087",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商308",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口308（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2088",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商309",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口309（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2089",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商310",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口310（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2090",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商311",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口311（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2091",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商312",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口312（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2092",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商313",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口313（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2093",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商314",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口314（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2094",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商315",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口315（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2095",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商316",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口316（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2096",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商317",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口317（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2097",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商318",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口318（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2098",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商319",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口319（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2099",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商320",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口320（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2100",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商321",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口321（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2101",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商322",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口322（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2102",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商323",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口323（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2103",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商324",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口324（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2104",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商325",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口325（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2105",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商326",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口326（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2106",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商327",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口327（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2107",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商328",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口328（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2108",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商329",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口329（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2109",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商330",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口330（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2110",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商331",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口331（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2111",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商332",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口332（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2112",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商333",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口333（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2113",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商334",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口334（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2114",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商335",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口335（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2115",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商336",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口336（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2116",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商337",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口337（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2117",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商338",
+    "min_months": 4,
+    "policy_type": "months",
+    "condition_text": "4個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口338（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2118",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商339",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "看商品",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口339（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2119",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商340",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "禁退",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口340（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2120",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商341",
+    "min_months": 2,
+    "policy_type": "months",
+    "condition_text": "2個月",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口341（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2121",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商342",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口342（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2122",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商343",
+    "min_months": 10,
+    "policy_type": "months",
+    "condition_text": "10個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口343（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2123",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商344",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "無效期",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口344（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2124",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商345",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "通知業代",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口345（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2125",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商346",
+    "min_months": 7,
+    "policy_type": "months",
+    "condition_text": "7個月",
+    "return_method": "示範：聯絡窗口確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口346（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2126",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商347",
+    "min_months": null,
+    "policy_type": "conditional",
+    "condition_text": "滯銷",
+    "return_method": "示範：依商品另行確認",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口347（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  },
+  {
+    "vendor_code": "2127",
+    "delivery_vendor": "",
+    "vendor_name": "示範廠商348",
+    "min_months": null,
+    "policy_type": "no_return",
+    "condition_text": "不可退",
+    "return_method": "示範：填寫退貨申請",
+    "phone": "未提供（示範）",
+    "fax": "未提供（示範）",
+    "contact": "示範窗口348（無真實聯絡資料）",
+    "note": "全部為虛構資料，僅供作品展示",
+    "source_sheet": "2001-3000"
+  }
+];
+
+const SAMPLE_VENDORS = window.VENDOR_DATA || [];
+const storageKey = "return-rule-vendors-demo-v13";
+
+const elements = {
+  form: document.querySelector("#lookupForm"),
+  vendorCode: document.querySelector("#vendorCode"),
+  expiryDate: document.querySelector("#expiryDate"),
+  productTypeField: document.querySelector("#productTypeField"),
+  productType: document.querySelector("#productType"),
+  productTypeStatus: document.querySelector("#productTypeStatus"),
+  currentDate: document.querySelector("#currentDate"),
+  currentDateStatus: document.querySelector("#currentDateStatus"),
+  resultPanel: document.querySelector("#resultPanel"),
+  vendorList: document.querySelector("#vendorList"),
+  vendorJson: document.querySelector("#vendorJson"),
+  dataEditor: document.querySelector("#dataEditor"),
+  dataStatus: document.querySelector("#dataStatus"),
+  editorMessage: document.querySelector("#editorMessage"),
+  updateGuide: document.querySelector("#updateGuide"),
+  toggleGuideButton: document.querySelector("#toggleGuideButton"),
+  toggleDataButton: document.querySelector("#toggleDataButton"),
+  saveDataButton: document.querySelector("#saveDataButton"),
+  sampleDataButton: document.querySelector("#sampleDataButton"),
+  downloadCsvButton: document.querySelector("#downloadCsvButton"),
+  vendorFile: document.querySelector("#vendorFile"),
+  resetButton: document.querySelector("#resetButton")
+};
+
+let vendors = SAMPLE_VENDORS;
+
+function getCurrentMonthValue() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function formatMonthLabel(value) {
+  return value.replace("-", "/");
+}
+
+function updateCurrentMonth() {
+  const currentMonth = getCurrentMonthValue();
+  elements.currentDate.value = currentMonth;
+  elements.currentDate.defaultValue = currentMonth;
+  elements.currentDateStatus.textContent = `已自動偵測本月：${formatMonthLabel(currentMonth)}`;
+}
+
+async function loadVendors() {
+  if (location.protocol === "file:") {
+    return SAMPLE_VENDORS;
+  }
+
+  try {
+    const response = await fetch(`./vendors.json?updated=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error("資料檔讀取失敗。");
+    }
+    return validateVendors(await response.json());
+  } catch {
+    return SAMPLE_VENDORS;
+  }
+}
+
+function validateVendors(value) {
+  if (!Array.isArray(value)) {
+    throw new Error("資料必須是陣列。");
+  }
+
+  return value.flatMap((item, index) => {
+    const rawCode = String(item.vendor_code || item["廠編"] || item.code || "").trim().toUpperCase();
+    const rawName = String(item.vendor_name || item["廠商名稱"] || item.name || "").trim();
+    const deliveryVendor = String(item.delivery_vendor || item["代送商"] || "").trim();
+    const conditionText = String(item.condition_text || item["退貨效期"] || item.condition || "").trim();
+    const returnMethod = String(item.return_method || item["退貨方式"] || "").trim();
+    const minMonths = normalizeMinMonths(item.min_months, conditionText || returnMethod);
+    const hasUsefulData = [rawCode, rawName, deliveryVendor, conditionText, returnMethod].some(Boolean);
+
+    if (!hasUsefulData) {
+      return [];
+    }
+
+    const code = rawCode || `未編${String(index + 1).padStart(3, "0")}`;
+    const name = rawName || "(未填廠商名稱)";
+
+    return {
+      vendor_code: code,
+      delivery_vendor: deliveryVendor,
+      vendor_name: name,
+      min_months: minMonths === null ? null : Math.floor(minMonths),
+      policy_type: String(item.policy_type || (minMonths === null ? "conditional" : "months")).trim(),
+      condition_text: conditionText || (minMonths === null ? "未填退貨條件" : `效期需至少 ${Math.floor(minMonths)} 個月以上`),
+      return_method: returnMethod,
+      phone: String(item.phone || item["公司電話"] || "").trim(),
+      fax: String(item.fax || item["傳真"] || "").trim(),
+      contact: String(item.contact || item["聯絡人(手機)"] || item["聯絡人"] || "").trim(),
+      note: String(item.note || item["備註"] || "").trim(),
+      source_sheet: String(item.source_sheet || "").trim()
+    };
+  });
+}
+
+function normalizeMinMonths(rawValue, fallbackText) {
+  if (rawValue === null || rawValue === "" || rawValue === undefined) {
+    return extractMonthNumber(fallbackText);
+  }
+
+  const directNumber = Number(rawValue);
+  if (Number.isFinite(directNumber) && directNumber >= 0) {
+    return directNumber;
+  }
+
+  return extractMonthNumber(`${rawValue} ${fallbackText}`);
+}
+
+function extractMonthNumber(text) {
+  const normalized = String(text || "")
+    .replaceAll("個月以上", "個月")
+    .replaceAll(" 個月", "個月");
+
+  if (!normalized.trim()) {
+    return null;
+  }
+
+  if (normalized.includes("半年")) {
+    return 6;
+  }
+
+  if (/1\s*年|一年/.test(normalized)) {
+    return 12;
+  }
+
+  const monthMatches = [...normalized.matchAll(/(\d+)\s*個?月/g)].map((match) => Number(match[1]));
+  if (monthMatches.length > 0) {
+    return Math.max(...monthMatches);
+  }
+
+  const compactMatches = [...normalized.matchAll(/[水粉液體膠囊粉錠肉鬆]\s*(\d+)/g)].map((match) => Number(match[1]));
+  if (compactMatches.length > 0) {
+    return Math.max(...compactMatches);
+  }
+
+  return null;
+}
+
+function parseYearMonth(value) {
+  const normalized = String(value || "").trim();
+  const match = normalized.match(/^(\d{4})[/-]?(\d{1,2})$/);
+
+  if (!match) {
+    throw new Error("效期年月格式需為 YYYY/MM、YYYY-MM 或 YYYYMM。");
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+
+  if (month < 1 || month > 12) {
+    throw new Error("月份需介於 01 到 12。");
+  }
+
+  return { year, month, label: `${year}/${String(month).padStart(2, "0")}` };
+}
+
+function calculateRemainingMonths(current, expiry) {
+  return (expiry.year - current.year) * 12 + (expiry.month - current.month);
+}
+
+function parseProductRules(vendor) {
+  const text = vendor?.condition_text || "";
+  const patterns = [
+    { label: "膠囊粉錠", pattern: /膠囊粉錠(?:效期)?\s*(\d+)\s*個?月?/ },
+    { label: "粉和肉鬆", pattern: /粉和肉鬆\s*(\d+)\s*個?月?/ },
+    { label: "液體", pattern: /液體\s*(\d+)\s*個?月?/ },
+    { label: "水", pattern: /水\s*(\d+)\s*個?月?/ },
+    { label: "粉", pattern: /粉\s*(\d+)\s*個?月?/ }
+  ];
+
+  return patterns.reduce((rules, item) => {
+    const match = text.match(item.pattern);
+    if (!match) {
+      return rules;
+    }
+
+    const months = Number(match[1]);
+    if (!Number.isFinite(months)) {
+      return rules;
+    }
+
+    if (!rules.some((rule) => rule.label === item.label)) {
+      rules.push({ label: item.label, months });
+    }
+    return rules;
+  }, []);
+}
+
+function updateProductTypeOptions() {
+  const vendor = findVendor(elements.vendorCode.value);
+  const rules = parseProductRules(vendor);
+
+  if (!vendor || rules.length < 2) {
+    elements.productTypeField.hidden = true;
+    elements.productType.required = false;
+    elements.productType.innerHTML = "";
+    elements.productTypeStatus.textContent = "";
+    return rules;
+  }
+
+  const previousValue = elements.productType.value;
+  elements.productTypeField.hidden = false;
+  elements.productType.required = true;
+  elements.productType.innerHTML = [
+    `<option value="">請選擇品項類型</option>`,
+    ...rules.map((rule, index) => {
+      return `<option value="${index}">${escapeHtml(rule.label)}：${rule.months} 個月</option>`;
+    })
+  ].join("");
+  elements.productType.value = rules[previousValue] ? previousValue : "";
+  elements.productTypeStatus.textContent = "此廠商有不同品項門檻，請先選水、粉或對應類型。";
+  return rules;
+}
+
+function findVendor(query) {
+  const normalized = String(query || "").trim().toUpperCase();
+  const padded = /^\d+$/.test(normalized) ? normalized.padStart(3, "0") : normalized;
+  return vendors.find((vendor) => vendor.vendor_code === padded)
+    || vendors.find((vendor) => vendor.vendor_name.toUpperCase().includes(normalized));
+}
+
+function renderVendors() {
+  elements.dataStatus.textContent = `${vendors.length} 筆資料`;
+  elements.vendorJson.value = JSON.stringify(vendors, null, 2);
+  elements.vendorList.innerHTML = vendors
+    .slice(0, 80)
+    .map((vendor) => {
+      const rule = vendor.min_months === null ? "需人工確認" : `門檻 ${vendor.min_months} 個月`;
+      return `
+        <article class="vendor-item">
+          <h3>${escapeHtml(vendor.vendor_code)}｜${escapeHtml(vendor.vendor_name)}</h3>
+          <p>${escapeHtml(vendor.condition_text)} · ${escapeHtml(rule)}</p>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderResult(result) {
+  if (result.error) {
+    elements.resultPanel.innerHTML = `
+      <div class="result-banner is-warn">
+        <h2>無法完成查詢</h2>
+        <p>${escapeHtml(result.error)}</p>
+      </div>
+    `;
+    return;
+  }
+
+  const { vendor, current, expiry, remainingMonths, selectedRule, requiredMonths } = result;
+  if (vendor.vendor_name === "(未填廠商名稱)" || vendor.condition_text === "未填退貨條件") {
+    elements.resultPanel.innerHTML = `
+      <article class="result-card">
+        <div class="result-banner is-warn">
+          <h2>這筆廠商資料不完整</h2>
+          <p>目前資料檔缺少廠商名稱或退貨規則。請先確認 Excel 已存檔，再重新執行「更新廠商資料.bat」。</p>
+        </div>
+        <dl class="detail-list">
+          <div><dt>廠商代碼</dt><dd>${escapeHtml(vendor.vendor_code)}</dd></div>
+          <div><dt>廠商名稱</dt><dd>${escapeHtml(vendor.vendor_name)}</dd></div>
+          <div><dt>退貨規則</dt><dd>${escapeHtml(vendor.condition_text)}</dd></div>
+          <div><dt>基準年月</dt><dd>${escapeHtml(current.label)}</dd></div>
+          <div><dt>效期年月</dt><dd>${escapeHtml(expiry.label)}</dd></div>
+        </dl>
+      </article>
+    `;
+    return;
+  }
+
+  const decision = decideReturnStatus(vendor, remainingMonths, requiredMonths);
+  const gap = requiredMonths === null ? "未設定" : remainingMonths - requiredMonths;
+  const productDetail = selectedRule
+    ? `<div><dt>品項類型</dt><dd>${escapeHtml(selectedRule.label)}（門檻 ${selectedRule.months} 個月）</dd></div>`
+    : "";
+
+  elements.resultPanel.innerHTML = `
+    <article class="result-card">
+      <div class="result-banner ${decision.bannerClass}">
+        <h2>${escapeHtml(decision.title)}</h2>
+        <p>${escapeHtml(decision.message)}</p>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric">
+          <span>剩餘效期</span>
+          <strong>${remainingMonths}</strong>
+        </div>
+        <div class="metric">
+          <span>最低門檻</span>
+          <strong>${requiredMonths === null ? "-" : requiredMonths}</strong>
+        </div>
+        <div class="metric">
+          <span>差額</span>
+          <strong>${gap}</strong>
+        </div>
+      </div>
+
+      <dl class="detail-list">
+        <div><dt>廠商</dt><dd>${escapeHtml(vendor.vendor_name)}（${escapeHtml(vendor.vendor_code)}）</dd></div>
+        <div><dt>代送商</dt><dd>${escapeHtml(vendor.delivery_vendor || "無")}</dd></div>
+        ${productDetail}
+        <div><dt>基準年月</dt><dd>${escapeHtml(current.label)}</dd></div>
+        <div><dt>效期年月</dt><dd>${escapeHtml(expiry.label)}</dd></div>
+        <div><dt>退貨規則</dt><dd>${escapeHtml(vendor.condition_text)}</dd></div>
+        <div><dt>退貨方式</dt><dd>${escapeHtml(vendor.return_method || "未填")}</dd></div>
+        <div><dt>聯絡資訊</dt><dd>${escapeHtml([vendor.phone, vendor.fax, vendor.contact].filter(Boolean).join(" / ") || "未填")}</dd></div>
+        <div><dt>備註</dt><dd>${escapeHtml(vendor.note || "無")}</dd></div>
+      </dl>
+    </article>
+  `;
+}
+
+function handleLookup(event) {
+  event.preventDefault();
+
+  try {
+    const vendor = findVendor(elements.vendorCode.value);
+    if (!vendor) {
+      throw new Error("找不到此廠商代碼或名稱，請確認資料是否已建立。");
+    }
+
+    const current = parseYearMonth(elements.currentDate.value);
+    const expiry = parseYearMonth(elements.expiryDate.value);
+    const remainingMonths = calculateRemainingMonths(current, expiry);
+    const productRules = updateProductTypeOptions();
+    const selectedRule = productRules.length >= 2 && elements.productType.value !== ""
+      ? productRules[Number(elements.productType.value)]
+      : null;
+
+    if (productRules.length >= 2 && !selectedRule) {
+      throw new Error("此廠商有水、粉等不同計算方式，請先選擇品項類型。");
+    }
+
+    renderResult({
+      vendor,
+      current,
+      expiry,
+      remainingMonths,
+      selectedRule,
+      requiredMonths: selectedRule ? selectedRule.months : vendor.min_months
+    });
+  } catch (error) {
+    renderResult({ error: error.message });
+  }
+}
+
+function decideReturnStatus(vendor, remainingMonths, requiredMonths) {
+  if (vendor.policy_type === "no_return") {
+    return {
+      bannerClass: "is-bad",
+      title: "此廠商標示為禁退",
+      message: "原始條件含禁退或不可退，請勿只用效期月份判斷。"
+    };
+  }
+
+  if (requiredMonths === null) {
+    return {
+      bannerClass: "is-warn",
+      title: "需要人工確認",
+      message: "此廠商條件不是單純月份門檻，請依退貨規則、退貨方式或業務窗口確認。"
+    };
+  }
+
+  const gap = remainingMonths - requiredMonths;
+  return {
+    bannerClass: gap >= 0 ? "is-ok" : "is-bad",
+    title: gap >= 0 ? "符合退貨條件" : "不符合退貨條件",
+    message: gap >= 0
+      ? `剩餘效期已達門檻，超過最低需求 ${gap} 個月。`
+      : `剩餘效期不足，尚差 ${Math.abs(gap)} 個月。`
+  };
+}
+
+function saveVendorsFromEditor() {
+  try {
+    vendors = validateVendors(JSON.parse(elements.vendorJson.value));
+    localStorage.setItem(storageKey, JSON.stringify(vendors));
+    elements.editorMessage.textContent = "資料已套用。";
+    updateProductTypeOptions();
+    renderVendors();
+  } catch (error) {
+    elements.editorMessage.textContent = error.message;
+  }
+}
+
+function resetSampleData() {
+  vendors = SAMPLE_VENDORS;
+  localStorage.setItem(storageKey, JSON.stringify(vendors));
+  elements.editorMessage.textContent = "已載入虛構示範資料。";
+  updateProductTypeOptions();
+  renderVendors();
+}
+
+function importVendorFile(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      vendors = validateVendors(JSON.parse(String(reader.result || "")));
+      localStorage.setItem(storageKey, JSON.stringify(vendors));
+      elements.editorMessage.textContent = `已匯入 ${vendors.length} 筆新版資料。`;
+      updateProductTypeOptions();
+      renderVendors();
+    } catch (error) {
+      elements.editorMessage.textContent = `匯入失敗：${error.message}`;
+    } finally {
+      elements.vendorFile.value = "";
+    }
+  });
+  reader.readAsText(file, "utf-8");
+}
+
+function downloadCsv() {
+  const header = ["vendor_code", "delivery_vendor", "vendor_name", "min_months", "policy_type", "condition_text", "return_method", "phone", "fax", "contact", "note", "source_sheet"];
+  const rows = vendors.map((vendor) => header.map((key) => csvCell(vendor[key])).join(","));
+  const csv = [header.join(","), ...rows].join("\n");
+  const blob = new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "return-rule-vendors.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replaceAll('"', '""')}"`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+updateCurrentMonth();
+window.addEventListener("pageshow", updateCurrentMonth);
+elements.form.addEventListener("submit", handleLookup);
+elements.vendorCode.addEventListener("input", updateProductTypeOptions);
+elements.toggleGuideButton.addEventListener("click", () => {
+  const isHidden = elements.updateGuide.hidden;
+  elements.updateGuide.hidden = !isHidden;
+  elements.toggleGuideButton.textContent = isHidden ? "收合教學" : "更新 Excel 教學";
+});
+elements.resetButton.addEventListener("click", () => {
+  elements.form.reset();
+  updateCurrentMonth();
+  updateProductTypeOptions();
+  elements.resultPanel.innerHTML = `
+    <div class="empty-state">
+      <h2>輸入廠商與效期後，結果會顯示在這裡。</h2>
+      <p>系統會用「效期年月 - 基準年月」計算剩餘月數，再比對廠商最低退貨門檻。</p>
+    </div>
+  `;
+});
+elements.toggleDataButton.addEventListener("click", () => {
+  const isHidden = elements.dataEditor.hidden;
+  elements.dataEditor.hidden = !isHidden;
+  elements.toggleDataButton.textContent = isHidden ? "收合" : "編輯";
+});
+elements.saveDataButton.addEventListener("click", saveVendorsFromEditor);
+elements.sampleDataButton.addEventListener("click", resetSampleData);
+elements.downloadCsvButton.addEventListener("click", downloadCsv);
+elements.vendorFile.addEventListener("change", importVendorFile);
+
+loadVendors().then((loadedVendors) => {
+  vendors = loadedVendors;
+  updateProductTypeOptions();
+  renderVendors();
+});
+
+</script>
+  </body>
+</html>

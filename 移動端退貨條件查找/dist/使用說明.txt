@@ -1,0 +1,19 @@
+退貨條件計算系統 - 手機單檔版
+
+使用方式：
+1. 把 return-rule-finder-mobile.zip 傳到手機。
+2. 在手機「檔案」App 解壓縮。
+3. 打開 iphone-open-this.html 或 return-rule-finder.html。
+4. 如果只是預覽畫面，請按分享，選 Safari 或 Chrome 開啟。
+5. 輸入廠商代碼或名稱與效期年月即可查詢。
+
+iPhone / iPad 注意：
+- 不要開 127.0.0.1 的網址，那只會指向手機自己。
+- 請先解壓縮 zip，再打開 iphone-open-this.html。
+- 不要在 LINE、郵件、檔案預覽裡直接使用；請按分享，選 Safari 或 Chrome 開啟。
+- 如果 Safari 仍無法執行，代表 iOS 擋住本機 HTML。最穩做法是請資訊人員把 dist-live 放到公司內網網址。
+
+備註：
+- 這是離線單檔版，不需要網路。
+- 資料已包在 HTML 裡。
+- vendors.json 是資料備份，手機使用時不一定需要。

@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "退貨條件計算系統",
+  "short_name": "退貨計算",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef7f5",
+  "theme_color": "#0f766e",
+  "orientation": "portrait",
+  "lang": "zh-Hant",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

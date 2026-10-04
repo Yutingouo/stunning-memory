@@ -1,0 +1,9 @@
+{
+  "appId": "com.returnrules.finder",
+  "appName": "退貨條件查找",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "return-rule-finder",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check app.js && node --check vendors-data.js",
+    "build:single": "node tools/build-single-file.cjs",
+    "build:live": "node tools/build-live-package.cjs",
+    "preview": "node tools/preview-server.mjs",
+    "cap:init": "npx cap init",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:sync": "npx cap sync"
+  },
+  "devDependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/cli": "latest",
+    "@capacitor/core": "latest",
+    "@capacitor/ios": "latest"
+  }
+}
