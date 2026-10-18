@@ -1,5 +1,5 @@
 const SAMPLE_VENDORS = window.VENDOR_DATA || [];
-const storageKey = "return-rule-vendors-demo-v13";
+const storageKey = "return-rule-vendors";
 
 const elements = {
   form: document.querySelector("#lookupForm"),
@@ -89,7 +89,7 @@ function validateVendors(value) {
       vendor_name: name,
       min_months: minMonths === null ? null : Math.floor(minMonths),
       policy_type: String(item.policy_type || (minMonths === null ? "conditional" : "months")).trim(),
-      condition_text: conditionText || (minMonths === null ? "未填退貨條件" : `效期需至少 ${Math.floor(minMonths)} 個月以上`),
+      condition_text: conditionText || (minMonths === null ? "未填退貨條件" : `剩餘效期需恰好為 ${Math.floor(minMonths)} 個月`),
       return_method: returnMethod,
       phone: String(item.phone || item["公司電話"] || "").trim(),
       fax: String(item.fax || item["傳真"] || "").trim(),
@@ -148,7 +148,7 @@ function parseYearMonth(value) {
   const match = normalized.match(/^(\d{4})[/-]?(\d{1,2})$/);
 
   if (!match) {
-    throw new Error("效期年月格式需為 YYYY/MM、YYYY-MM 或 YYYYMM。");
+    throw new Error("到期年月格式需為 YYYY/MM、YYYY-MM 或 YYYYMM。");
   }
 
   const year = Number(match[1]);
@@ -163,6 +163,13 @@ function parseYearMonth(value) {
 
 function calculateRemainingMonths(current, expiry) {
   return (expiry.year - current.year) * 12 + (expiry.month - current.month);
+}
+
+function calculateReturnMonth(expiry, requiredMonths) {
+  const totalMonths = expiry.year * 12 + expiry.month - 1 - requiredMonths;
+  const year = Math.floor(totalMonths / 12);
+  const month = totalMonths - year * 12 + 1;
+  return `${year}/${String(month).padStart(2, "0")}`;
 }
 
 function parseProductRules(vendor) {
@@ -194,7 +201,8 @@ function parseProductRules(vendor) {
 }
 
 function updateProductTypeOptions() {
-  const vendor = findVendor(elements.vendorCode.value);
+  const matchedVendors = findVendors(elements.vendorCode.value);
+  const vendor = matchedVendors.length === 1 ? matchedVendors[0] : null;
   const rules = parseProductRules(vendor);
 
   if (!vendor || rules.length < 2) {
@@ -215,32 +223,39 @@ function updateProductTypeOptions() {
     })
   ].join("");
   elements.productType.value = rules[previousValue] ? previousValue : "";
-  elements.productTypeStatus.textContent = "此廠商有不同品項門檻，請先選水、粉或對應類型。";
+  elements.productTypeStatus.textContent = "此廠商有不同品項的指定退貨月數，請先選水、粉或對應類型。";
   return rules;
 }
 
-function findVendor(query) {
+function findVendors(query) {
   const normalized = String(query || "").trim().toUpperCase();
+  if (!normalized) {
+    return [];
+  }
+
   const padded = /^\d+$/.test(normalized) ? normalized.padStart(3, "0") : normalized;
-  return vendors.find((vendor) => vendor.vendor_code === padded)
-    || vendors.find((vendor) => vendor.vendor_name.toUpperCase().includes(normalized));
+  const codeMatches = vendors.filter((vendor) => vendor.vendor_code === padded);
+  if (codeMatches.length > 0) {
+    return codeMatches;
+  }
+
+  return vendors.filter((vendor) => vendor.vendor_name.toUpperCase().includes(normalized));
+}
+
+function findVendor(query) {
+  return findVendors(query)[0] || null;
 }
 
 function renderVendors() {
   elements.dataStatus.textContent = `${vendors.length} 筆資料`;
-  elements.vendorJson.value = JSON.stringify(vendors, null, 2);
-  elements.vendorList.innerHTML = vendors
-    .slice(0, 80)
-    .map((vendor) => {
-      const rule = vendor.min_months === null ? "需人工確認" : `門檻 ${vendor.min_months} 個月`;
-      return `
-        <article class="vendor-item">
-          <h3>${escapeHtml(vendor.vendor_code)}｜${escapeHtml(vendor.vendor_name)}</h3>
-          <p>${escapeHtml(vendor.condition_text)} · ${escapeHtml(rule)}</p>
-        </article>
-      `;
-    })
-    .join("");
+  elements.vendorList.innerHTML = `
+    <div class="empty-state">
+      <p>平常只需要使用上方查詢。資料維護請使用「更新廠商資料.bat」。</p>
+    </div>
+  `;
+  if (!elements.dataEditor.hidden) {
+    elements.vendorJson.value = JSON.stringify(vendors, null, 2);
+  }
 }
 
 function renderResult(result) {
@@ -254,10 +269,30 @@ function renderResult(result) {
     return;
   }
 
-  const { vendor, current, expiry, remainingMonths, selectedRule, requiredMonths } = result;
-  if (vendor.vendor_name === "(未填廠商名稱)" || vendor.condition_text === "未填退貨條件") {
+  if (Array.isArray(result.items)) {
+    const notice = result.items.length > 1
+      ? `<div class="result-banner is-warn"><h2>找到 ${result.items.length} 筆符合資料</h2><p>同一個廠編或名稱可能有多筆規則，請依廠商名稱與退貨規則確認。</p></div>`
+      : "";
     elements.resultPanel.innerHTML = `
+      <div class="result-stack">
+        ${notice}
+        ${result.items.map((item, index) => renderResultCard(item, index, result.items.length)).join("")}
+      </div>
+    `;
+    return;
+  }
+
+  elements.resultPanel.innerHTML = renderResultCard(result, 0, 1);
+}
+
+function renderResultCard(result, index, total) {
+  const { vendor, current, expiry, remainingMonths, selectedRule, requiredMonths } = result;
+  const cardTitle = total > 1 ? `<p class="result-index">第 ${index + 1} 筆 / 共 ${total} 筆</p>` : "";
+
+  if (vendor.vendor_name === "(未填廠商名稱)" || vendor.condition_text === "未填退貨條件") {
+    return `
       <article class="result-card">
+        ${cardTitle}
         <div class="result-banner is-warn">
           <h2>這筆廠商資料不完整</h2>
           <p>目前資料檔缺少廠商名稱或退貨規則。請先確認 Excel 已存檔，再重新執行「更新廠商資料.bat」。</p>
@@ -267,21 +302,21 @@ function renderResult(result) {
           <div><dt>廠商名稱</dt><dd>${escapeHtml(vendor.vendor_name)}</dd></div>
           <div><dt>退貨規則</dt><dd>${escapeHtml(vendor.condition_text)}</dd></div>
           <div><dt>基準年月</dt><dd>${escapeHtml(current.label)}</dd></div>
-          <div><dt>效期年月</dt><dd>${escapeHtml(expiry.label)}</dd></div>
+          <div><dt>到期年月</dt><dd>${escapeHtml(expiry.label)}</dd></div>
         </dl>
       </article>
     `;
-    return;
   }
 
-  const decision = decideReturnStatus(vendor, remainingMonths, requiredMonths);
+  const decision = decideReturnStatus(vendor, remainingMonths, requiredMonths, expiry);
   const gap = requiredMonths === null ? "未設定" : remainingMonths - requiredMonths;
   const productDetail = selectedRule
-    ? `<div><dt>品項類型</dt><dd>${escapeHtml(selectedRule.label)}（門檻 ${selectedRule.months} 個月）</dd></div>`
+    ? `<div><dt>品項類型</dt><dd>${escapeHtml(selectedRule.label)}（指定 ${selectedRule.months} 個月）</dd></div>`
     : "";
 
-  elements.resultPanel.innerHTML = `
+  return `
     <article class="result-card">
+      ${cardTitle}
       <div class="result-banner ${decision.bannerClass}">
         <h2>${escapeHtml(decision.title)}</h2>
         <p>${escapeHtml(decision.message)}</p>
@@ -293,7 +328,7 @@ function renderResult(result) {
           <strong>${remainingMonths}</strong>
         </div>
         <div class="metric">
-          <span>最低門檻</span>
+          <span>指定退貨月數</span>
           <strong>${requiredMonths === null ? "-" : requiredMonths}</strong>
         </div>
         <div class="metric">
@@ -307,7 +342,7 @@ function renderResult(result) {
         <div><dt>代送商</dt><dd>${escapeHtml(vendor.delivery_vendor || "無")}</dd></div>
         ${productDetail}
         <div><dt>基準年月</dt><dd>${escapeHtml(current.label)}</dd></div>
-        <div><dt>效期年月</dt><dd>${escapeHtml(expiry.label)}</dd></div>
+        <div><dt>到期年月</dt><dd>${escapeHtml(expiry.label)}</dd></div>
         <div><dt>退貨規則</dt><dd>${escapeHtml(vendor.condition_text)}</dd></div>
         <div><dt>退貨方式</dt><dd>${escapeHtml(vendor.return_method || "未填")}</dd></div>
         <div><dt>聯絡資訊</dt><dd>${escapeHtml([vendor.phone, vendor.fax, vendor.contact].filter(Boolean).join(" / ") || "未填")}</dd></div>
@@ -321,15 +356,15 @@ function handleLookup(event) {
   event.preventDefault();
 
   try {
-    const vendor = findVendor(elements.vendorCode.value);
-    if (!vendor) {
+    const matchedVendors = findVendors(elements.vendorCode.value);
+    if (matchedVendors.length === 0) {
       throw new Error("找不到此廠商代碼或名稱，請確認資料是否已建立。");
     }
 
     const current = parseYearMonth(elements.currentDate.value);
     const expiry = parseYearMonth(elements.expiryDate.value);
     const remainingMonths = calculateRemainingMonths(current, expiry);
-    const productRules = updateProductTypeOptions();
+    const productRules = matchedVendors.length === 1 ? updateProductTypeOptions() : [];
     const selectedRule = productRules.length >= 2 && elements.productType.value !== ""
       ? productRules[Number(elements.productType.value)]
       : null;
@@ -339,23 +374,25 @@ function handleLookup(event) {
     }
 
     renderResult({
-      vendor,
-      current,
-      expiry,
-      remainingMonths,
-      selectedRule,
-      requiredMonths: selectedRule ? selectedRule.months : vendor.min_months
+      items: matchedVendors.map((vendor) => ({
+        vendor,
+        current,
+        expiry,
+        remainingMonths,
+        selectedRule: matchedVendors.length === 1 ? selectedRule : null,
+        requiredMonths: matchedVendors.length === 1 && selectedRule ? selectedRule.months : vendor.min_months
+      }))
     });
   } catch (error) {
     renderResult({ error: error.message });
   }
 }
 
-function decideReturnStatus(vendor, remainingMonths, requiredMonths) {
+function decideReturnStatus(vendor, remainingMonths, requiredMonths, expiry) {
   if (vendor.policy_type === "no_return") {
     return {
       bannerClass: "is-bad",
-      title: "此廠商標示為禁退",
+      title: "不可退貨",
       message: "原始條件含禁退或不可退，請勿只用效期月份判斷。"
     };
   }
@@ -364,17 +401,20 @@ function decideReturnStatus(vendor, remainingMonths, requiredMonths) {
     return {
       bannerClass: "is-warn",
       title: "需要人工確認",
-      message: "此廠商條件不是單純月份門檻，請依退貨規則、退貨方式或業務窗口確認。"
+      message: "此廠商條件不是單純月份規則，請依退貨規則、退貨方式或業務窗口確認。"
     };
   }
 
   const gap = remainingMonths - requiredMonths;
+  const returnMonth = calculateReturnMonth(expiry, requiredMonths);
   return {
-    bannerClass: gap >= 0 ? "is-ok" : "is-bad",
-    title: gap >= 0 ? "符合退貨條件" : "不符合退貨條件",
-    message: gap >= 0
-      ? `剩餘效期已達門檻，超過最低需求 ${gap} 個月。`
-      : `剩餘效期不足，尚差 ${Math.abs(gap)} 個月。`
+    bannerClass: gap > 0 ? "is-warn" : gap === 0 ? "is-ok" : "is-bad",
+    title: gap > 0 ? "尚不可退貨" : gap === 0 ? "可以通知退貨" : "不可退貨",
+    message: gap > 0
+      ? `可通知退貨年月：${returnMonth}，距基準年月還有 ${gap} 個月。`
+      : gap === 0
+        ? `可通知退貨年月：${returnMonth}，剩餘效期恰好為 ${requiredMonths} 個月，可以通知退貨。`
+        : `可通知退貨年月為 ${returnMonth}，已超過指定退貨月份 ${Math.abs(gap)} 個月。`
   };
 }
 
@@ -393,7 +433,7 @@ function saveVendorsFromEditor() {
 function resetSampleData() {
   vendors = SAMPLE_VENDORS;
   localStorage.setItem(storageKey, JSON.stringify(vendors));
-  elements.editorMessage.textContent = "已載入虛構示範資料。";
+  elements.editorMessage.textContent = "已載入 Excel 匯入資料。";
   updateProductTypeOptions();
   renderVendors();
 }
@@ -464,7 +504,7 @@ elements.resetButton.addEventListener("click", () => {
   elements.resultPanel.innerHTML = `
     <div class="empty-state">
       <h2>輸入廠商與效期後，結果會顯示在這裡。</h2>
-      <p>系統會用「效期年月 - 基準年月」計算剩餘月數，再比對廠商最低退貨門檻。</p>
+      <p>系統會用「到期年月 - 基準年月」計算剩餘月數，再比對廠商指定退貨月數，恰好相等才符合退貨條件。</p>
     </div>
   `;
 });
@@ -472,6 +512,9 @@ elements.toggleDataButton.addEventListener("click", () => {
   const isHidden = elements.dataEditor.hidden;
   elements.dataEditor.hidden = !isHidden;
   elements.toggleDataButton.textContent = isHidden ? "收合" : "編輯";
+  if (isHidden) {
+    elements.vendorJson.value = JSON.stringify(vendors, null, 2);
+  }
 });
 elements.saveDataButton.addEventListener("click", saveVendorsFromEditor);
 elements.sampleDataButton.addEventListener("click", resetSampleData);

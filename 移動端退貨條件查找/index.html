@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0f766e">
     <title>退貨條件計算系統</title>
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=17">
   </head>
   <body>
     <main class="app-shell">
@@ -15,7 +15,6 @@
           <div>
             <p class="eyebrow">Mobile Return Rule Calculator</p>
             <h1 id="app-title">退貨條件計算系統</h1>
-            <p class="helper-text">作品展示版：全部廠商與退貨條件均為虛構資料。</p>
           </div>
           <div class="title-actions">
             <span class="status-pill" id="dataStatus">資料載入中</span>
@@ -29,11 +28,12 @@
           <div class="guide-block">
             <h3>電腦版使用者</h3>
             <ol>
-              <li>把新版 Excel 放在這個資料夾：<code>本專案資料夾</code></li>
-              <li>在 Excel 選「另存新檔」，檔名存成 <code>source.xlsx</code>。</li>
-              <li>不用關掉其他 Excel 檔，但請確認 <code>source.xlsx</code> 已儲存完成。</li>
-              <li>雙擊資料夾裡的 <code>更新廠商資料.bat</code>。</li>
-              <li>看到更新完成後，重新開啟或重新整理這個網頁。</li>
+              <li>打開最新版 Excel，選「另存新檔」。</li>
+              <li>存到這個資料夾：<code>C:\Users\Administrator\Documents\移動端退貨條件查找</code></li>
+              <li>檔名一定要叫 <code>source.xlsx</code>。</li>
+              <li>雙擊 <code>更新廠商資料.bat</code>。</li>
+              <li>看到 <code>Update completed</code> 後，關掉黑色視窗。</li>
+              <li>重新開啟或重新整理這個網頁。</li>
             </ol>
           </div>
 
@@ -41,7 +41,7 @@
             <h3>手機版使用者</h3>
             <ol>
               <li>先在這台電腦完成上面的 Excel 更新步驟。</li>
-              <li>重新產生手機版檔案，或請負責維護的人產生新版。</li>
+              <li>更新程式會自動產生新版手機檔。</li>
               <li>把新版 <code>return-rule-finder-mobile.zip</code> 傳到手機。</li>
               <li>手機解壓縮後，打開裡面的 <code>return-rule-finder.html</code>。</li>
             </ol>
@@ -53,11 +53,11 @@
         <form id="lookupForm" class="lookup-form">
           <label for="vendorCode">
             廠商代碼或名稱
-            <input id="vendorCode" name="vendorCode" type="text" autocomplete="off" placeholder="例如 001 或 示範廠商001" required>
+            <input id="vendorCode" name="vendorCode" type="text" autocomplete="off" placeholder="例如 001 或 嬌生" required>
           </label>
 
           <label for="expiryDate">
-            效期年月
+            到期年月
             <input id="expiryDate" name="expiryDate" type="text" inputmode="numeric" placeholder="2027/05、2027-05 或 202705" required>
           </label>
 
@@ -83,7 +83,7 @@
       <section class="result-panel" id="resultPanel" aria-live="polite">
         <div class="empty-state">
           <h2>輸入廠商與效期後，結果會顯示在這裡。</h2>
-          <p>系統會用「效期年月 - 基準年月」計算剩餘月數，再比對廠商最低退貨門檻。</p>
+          <p>系統會用「到期年月 - 基準年月」計算剩餘月數，再比對廠商指定退貨月數，恰好相等才符合退貨條件。</p>
         </div>
       </section>
 
@@ -103,7 +103,7 @@
           <textarea id="vendorJson" spellcheck="false"></textarea>
           <div class="button-row">
             <button class="primary-button" type="button" id="saveDataButton">套用資料</button>
-            <button class="ghost-button" type="button" id="sampleDataButton">載入示範資料</button>
+            <button class="ghost-button" type="button" id="sampleDataButton">載入 Excel 資料</button>
             <button class="ghost-button" type="button" id="downloadCsvButton">下載 CSV</button>
           </div>
           <label class="file-import" for="vendorFile">
@@ -115,7 +115,7 @@
       </section>
     </main>
 
-    <script src="vendors-data.js?v=13"></script>
-    <script src="app.js?v=13"></script>
+    <script src="vendors-data.js?v=14"></script>
+    <script src="app.js?v=17"></script>
   </body>
 </html>

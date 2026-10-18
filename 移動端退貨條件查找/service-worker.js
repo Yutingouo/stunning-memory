@@ -1,10 +1,10 @@
-const cacheName = "return-rule-finder-demo-v13";
+const cacheName = "return-rule-finder-v17";
 const assets = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js?v=13",
-  "./vendors-data.js?v=13",
+  "./styles.css?v=17",
+  "./app.js?v=17",
+  "./vendors-data.js?v=14",
   "./vendors.json",
   "./manifest.webmanifest",
   "./icon.svg"

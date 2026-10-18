@@ -253,6 +253,28 @@ button {
   gap: 14px;
 }
 
+.result-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.result-stack .result-card {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.result-stack .result-card:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.result-index {
+  margin-bottom: -4px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .result-banner {
   border-radius: 8px;
   padding: 14px;
@@ -269,8 +291,8 @@ button {
 }
 
 .result-banner.is-warn {
-  background: #fff7ed;
-  color: var(--warn);
+  background: #fef9c3;
+  color: #854d0e;
 }
 
 .result-banner h2 {
