@@ -10,13 +10,21 @@ const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
 const data = fs.readFileSync(path.join(root, "vendors-data.js"), "utf8");
 
-const inlineApp = app
-  .replace('if ("serviceWorker" in navigator && location.protocol !== "file:") {\n  navigator.serviceWorker.register("service-worker.js");\n}\n\n', "");
+const inlineApp = app.replace(
+  /if \("serviceWorker" in navigator && location\.protocol !== "file:"\) \{\r?\n\s*navigator\.serviceWorker\.register\("service-worker\.js"\);\r?\n\}\r?\n?/, ""
+);
 
 const output = html
-  .replace('<link rel="manifest" href="manifest.webmanifest">\n    ', "")
-  .replace('<link rel="stylesheet" href="styles.css">', `<style>\n${css}\n</style>`)
-  .replace('<script src="vendors-data.js?v=13"></script>\n    <script src="app.js?v=13"></script>', `<script>\n${data}\n${inlineApp}\n</script>`);
+  .replace(/<link rel="manifest" href="manifest\.webmanifest">\s*/, "")
+  .replace(/<link rel="stylesheet" href="styles\.css(?:\?[^"\s]*)?">/, () => '<style>\n' + css + '\n</style>')
+  .replace(/<script src="vendors-data\.js(?:\?[^"\s]*)?"><\/script>\s*<script src="app\.js(?:\?[^"\s]*)?"><\/script>/, () => '<script>\n' + data + '\n' + inlineApp + '\n</script>');
+
+if (/<script\b[^>]*\bsrc\s*=|<link\b[^>]*\brel="(?:stylesheet|manifest)"/i.test(output)) {
+  throw new Error("Offline build still contains external scripts or styles.");
+}
+if (!output.includes(css) || !output.includes(data) || !output.includes(inlineApp)) {
+  throw new Error("Offline build is missing inline assets.");
+}
 
 fs.writeFileSync(path.join(dist, "return-rule-finder.html"), output, "utf8");
 fs.writeFileSync(path.join(dist, "iphone-open-this.html"), output, "utf8");
@@ -31,7 +39,7 @@ fs.writeFileSync(
     "2. 在手機「檔案」App 解壓縮。",
     "3. 打開 iphone-open-this.html 或 return-rule-finder.html。",
     "4. 如果只是預覽畫面，請按分享，選 Safari 或 Chrome 開啟。",
-    "5. 輸入廠商代碼或名稱與效期年月即可查詢。",
+    "5. 輸入廠商代碼或名稱與到期年月即可查詢。",
     "",
     "iPhone / iPad 注意：",
     "- 不要開 127.0.0.1 的網址，那只會指向手機自己。",
